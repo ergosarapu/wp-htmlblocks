@@ -1,0 +1,4 @@
+block:
+    name: Invalid Block
+    description: Nodes are not closest siblings
+    xpath: //div[@id="1-0"]|//div[@id="1-2"]

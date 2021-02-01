@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="HTMLBlocks">
+  <description>HTMLBlocks Coding Standards</description>
+  <file>.</file>
+  <exclude-pattern>/tests/bootstrap.php</exclude-pattern>
+  <exclude-pattern>/tests/test-sample.php</exclude-pattern>
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+
+  <!-- Use PSR-12 as a base -->
+  <rule ref="PSR12"/>
+</ruleset>

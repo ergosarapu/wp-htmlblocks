@@ -1,0 +1,11 @@
+block:
+    name: Block 0-0
+    xpath: //div[@id="0-0"]
+    blocks:
+        - block:
+            name: Block 1-0
+            xpath: //div[@id="1-0"]
+        - block:
+            name: Invalid block
+            description: Closest sibling Block nodes are not closest siblings
+            xpath: //div[@id="1-2"]

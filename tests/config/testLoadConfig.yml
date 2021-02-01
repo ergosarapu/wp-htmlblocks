@@ -1,0 +1,78 @@
+block:
+    name: Block 0-0
+    description: Block 0-0
+    category:
+        slug: test
+        title: Test
+        icon: test
+    xpath: //div[@id="0-0"]
+    icon: test
+    fields:
+        - field:
+            type: text
+            name: first_text_field
+            label: Enter text to replace the text contents of div[@id="0-0"]
+            replaces:
+                - replace:
+                    xpath: //div[@id="0-0"]/text()[1]
+                    value_path: first_text_field
+    blocks:
+        - block:
+            name: Block 1-1
+            description: Block 1-1
+            category:
+                slug: test
+                title: Test
+                icon: test
+            xpath: //div[@id="1-1"]
+            fields:
+                - field:
+                    type: text
+                    name: second_text_field
+                    label: Enter text to replace the text contents of div[@id="1-1"]
+                    replaces:
+                        - replace:
+                            xpath: //div[@id="1-1"]/text()[1]
+                            value_path: second_text_field
+            blocks:
+                - block:
+                    name: Block 2-0, 2-1
+                    description: Block 2-0, 2-1
+                    category:
+                        slug: test
+                        title: Test
+                        icon: test
+                    xpath: //div[@id="2-0"]|//div[@id="2-1"]
+                    fields:
+                        - field:
+                            type: text
+                            name: third_text_field
+                            label: Enter date format string to replace text contents of div[@id="2-0"] and div[@id="2-1"] with current date
+                            replaces:
+                                - replace:
+                                    xpath: (//div[@id="2-0"]|//div[@id="2-1"])/text()
+                                    function:
+                                        name: date
+                                        args:
+                                            - arg:
+                                                value_path: third_text_field
+                                            - arg:
+                                                function:
+                                                    name: time
+                - block:
+                    name: Block 2-2
+                    description: Block 2-2
+                    category:
+                        slug: test
+                        title: Test
+                        icon: test
+                    xpath: //div[@id="2-2"]
+                    fields:
+                        - field:
+                            type: text
+                            name: fourth_text_field
+                            label: Fourth text field
+                            replaces:
+                                - replace:
+                                    xpath: //div[@id="2-2"]/text()
+                                    value_path: fourth_text_field

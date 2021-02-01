@@ -1,0 +1,207 @@
+$schema: http://json-schema.org/draft-07/schema
+$id: http://example.com/example.json
+definitions:
+    value_path:
+        type: string
+        title: Value path in dot notation
+        description: "Access value within value array provided by Carbon Fields render_callback (see https://docs.carbonfields.net/#/containers/gutenberg-blocks?id=config-methods ). The value path must be specified as dot notation, the first key being Field's 'name' attribute (see https://github.com/adbario/php-dot-notation )."
+    function:
+        type: object
+        title: Function definition to call for value
+        description: Function to call for value calculation.
+        default: {}
+        properties:
+            name:
+                type: string
+                title: Function name
+                description: Name of PHP function to call.
+                default: ""
+            args:
+                type: array
+                title: List of function arguments
+                description: One or more arguments to pass into function.
+                default: []
+                items:
+                    type: object
+                    default: {}
+                    properties:
+                        arg:
+                            type: object
+                            title: Argument definition
+                            description: Argument definition to pass into function.
+                            default: {}
+                            properties:
+                                value_path:
+                                    "$ref": "#/definitions/value_path"
+                                function:
+                                    "$ref": "#/definitions/function"
+    category:
+        type: object
+        title: Block category
+        description: "Category this block should be grouped under in Wordpress admin. See set_category Block configuration in Carbon Fields: https://docs.carbonfields.net/#/containers/gutenberg-blocks?id=config-methods"
+        default: {}
+        additionalProperties: false
+        required:
+          - slug
+          - title
+          - icon
+        properties: 
+            slug:
+                type: string
+                title: Category slug
+                description: Category slug
+                default: ""
+            title:
+                type: string
+                title: Category title
+                description: Category title
+                default: ""
+            icon:
+                type: string
+                title: Category icon
+                description: Category icon
+                default: ""
+type: object
+title: WP HtmlBlocks schema
+description: Configuration schema for WP HtmlBlocks.
+default: {}
+required:
+    - block
+properties:
+    block:
+        type: object
+        title: Block definition
+        description: Creates Block and captures section of HTML for rendering. The section must be specified using XPath query language.
+        default: {}
+        required:
+            - name
+            - description
+            - xpath
+        properties:
+            name:
+                type: string
+                title: Block name
+                description: The name of Block displayed in Wordpress admin.
+                default: ""
+            description:
+                type: string
+                title: Block description
+                description: The description of Block displayed in Wordpress admin.
+                default: ""
+            xpath:
+                type: string
+                title: Block XPath
+                description: Captures section of HTML for rendering the Block.
+                default: ""
+            icon:
+                type: string
+                title: Block icon
+                description: The slug of a Wordpress Dashicon.
+                default: ""
+            category:
+                "$ref": "#/definitions/category"
+            fields:
+                type: array
+                title: List of Fields
+                description: One or more Fields for Block.
+                default: []
+                items:
+                    type: object
+                    default: {}
+                    required:
+                        - field
+                    properties:
+                        field:
+                            type: object
+                            title: Field for user input
+                            description: Any of the fields supported by Carbon Fields.
+                            default: {}
+                            required:
+                                - type
+                                - name
+                                - label
+                            properties:
+                                type:
+                                    type: string
+                                    title: Field type
+                                    description: Any of the field type names supported by Carbon Fields, e.g. 'text'.
+                                    default: ""
+                                name:
+                                    type: string
+                                    title: Field name
+                                    description: Name of the field used to store values into storage and to refer for the value in replacement definitions.
+                                    default: ""
+                                label:
+                                    type: string
+                                    title: Field label
+                                    description: A label displayed for field in Wordpress admin.
+                                    default: ""
+                                config:
+                                    type: array
+                                    title: Field configuration
+                                    description: Call configuration functions on Carbon Field's Field to apply additional configuration. See Field Types and their config methods in Carbon Fields documentation
+                                    default: []
+                                    items:
+                                        type: object
+                                        default: {}
+                                        additionalProperties: false
+                                        required:
+                                            - function
+                                        properties:
+                                            function:
+                                                type: string
+                                                title: Function name to call
+                                                description: Function to call on Carbon Field's Field, e.g. 'set_min' for field type 'association'
+                                                default: ""
+                                            args:
+                                                type: array
+                                                title: Function arguments
+                                                description: Function arguments as list, provide as many list items as required by the function to be called.
+                                                default: []
+                                replaces:
+                                    type: array
+                                    title: List of replace definitions 
+                                    description: One or more replacements for Field.
+                                    default: []
+                                    items:
+                                        type: object
+                                        default: {}
+                                        required:
+                                            - replace
+                                        additionalProperties: false
+                                        properties:
+                                            replace:
+                                                type: object
+                                                title: Replacement definition
+                                                description: Replaces XPath specified nodes with value from Field.
+                                                default: {}
+                                                required:
+                                                    - xpath
+                                                properties:
+                                                    xpath:
+                                                        type: string
+                                                        title: Replacement XPath 
+                                                        description: XPath of the nodes to replace with value.
+                                                        default: ""
+                                                    value_path:
+                                                        "$ref": "#/definitions/value_path"
+                                                    function:
+                                                        "$ref": "#/definitions/function"
+                                                oneOf:
+                                                    - required:
+                                                        - value_path
+                                                    - required:
+                                                        - function
+            blocks:
+                type: array
+                title: List of nested Blocks
+                description: One or more nested Blocks within Block.
+                default: []
+                items:
+                    type: object
+                    default: {}
+                    required:
+                        - block
+                    properties:
+                        block:
+                            "$ref": "#/properties/block"

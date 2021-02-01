@@ -1,0 +1,65 @@
+block: # Define block
+  name: Newsletter # Block name
+  description: Newsletter block # Block description
+  xpath: //html # Select whole HTML to render this Block
+  icon: email # Block icon as WP Dashicon
+  category: # Set category this Block appears under
+    slug: newsletter
+    title: Newsletter
+    icon: email
+  fields: # Create Fields for Block
+    - field:
+        type: text # Field type 'text' (can be any of Carbon Fields supported field types)
+        name: greeting
+        label: Enter Your greeting here
+        replaces: # Define how Field values replaces sections in HTML 
+          - replace:
+              xpath: //h1/text() # XPath of section to replace in HTML
+              value_path: greeting # Path to field value using dot notation
+  blocks: # Define unlimited nested blocks
+    - block:
+        name: Two Posts
+        description: Two Posts block
+        xpath: //tr
+        icon: block-default
+        category:
+          slug: newsletter
+          title: Newsletter
+          icon: email
+        fields:
+          - field:
+              type: association
+              name: posts
+              label: Select Post or Page
+              config: # Configure Field using config methods supported by Carbon Fields
+                - function: set_types
+                  args:
+                    - - type: post
+                        post_type: post
+                      - type: post
+                        post_type: page
+                - function: set_min
+                  args:
+                    - 2
+                - function: set_max
+                  args:
+                    - 2
+              replaces:
+                - replace:
+                    xpath: //td[@id="post_left"]/text()
+                    function:
+                      name: get_the_title
+                      args:
+                        - arg:
+                            value_path: posts.0.id
+                - replace:
+                    xpath: //td[@id="post_right"]/text()
+                    function: # Call arbitrary functions to render desired replacement result
+                      name: strtoupper
+                      args:
+                        - arg:
+                            function: # Pass another arbitrary function as an argument
+                              name: get_the_title
+                              args:
+                                - arg:
+                                    value_path: posts.1.id
