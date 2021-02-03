@@ -23,5 +23,9 @@ jobs:
       - name: Install dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true'
         run: composer install --prefer-dist --no-progress --no-suggest
-      - name: Run composer script 'build'
-        run: composer run-script build
+      - name: PHP Unit Tests
+        run: composer test
+      - name: PHP Code Sniffer
+        run: composer phpcs
+      - name: PHP Mess Detector
+        run: composer phpmd
