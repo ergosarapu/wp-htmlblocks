@@ -11,71 +11,65 @@ final class ValueProviderTest extends TestCase
 {
     public function testValuePathValue()
     {
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         value_path: text
         EOT;
-        $config = Yaml::parse($config_yml);
+        $config = Yaml::parse($configYml);
 
-        $value_path = $config['value_path'];
-        $actual = ValueProvider::getValuePathValue(
-            $value_path,
+        $valueProvider = new ValueProvider(
+            $config,
             [
-                'text' => 'hello world'
+            'text' => 'hello world'
             ]
         );
-        $this->assertEquals('hello world', $actual);
+        $this->assertEquals('hello world', $valueProvider->value());
     }
 
     public function testFunctionValueWithValueArg()
     {
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         function:
             name: get_the_date
             args:
                 - arg:
                     value: d.m.Y
         EOT;
-        $config = Yaml::parse($config_yml);
+        $config = Yaml::parse($configYml);
 
-        $function_config = $config['function'];
+        $functionConfig = $config['function'];
 
         // Mock WP functions
-        WP_Mock::userFunction('get_the_date')->andReturn(date(dot($function_config)->get('args.0.arg.value')));
+        WP_Mock::userFunction('get_the_date')->andReturn(date(dot($functionConfig)->get('args.0.arg.value')));
 
-        $actual = ValueProvider::getFunctionValue($function_config, []);
-        $this->assertEquals(date('d.m.Y'), $actual);
+        $valueProvider = new ValueProvider($config, []);
+        $this->assertEquals(date('d.m.Y'), $valueProvider->value());
     }
 
     public function testFunctionValueWithValuePathArg()
     {
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         function:
             name: get_the_title
             args:
                 - arg:
                     value_path: posts.0.id
         EOT;
-        $config = Yaml::parse($config_yml);
-
-        $function_config = $config['function'];
+        $config = Yaml::parse($configYml);
 
         // Mock WP functions
         WP_Mock::userFunction('get_the_title')->with(10)->andReturn("Hello world!");
 
-        $actual = ValueProvider::getFunctionValue(
-            $function_config,
-            [
-                'posts' => [
-                    ['id' => 10]
-                ]
+        $valueProvider = new ValueProvider($config, [
+            'posts' => [
+                ['id' => 10]
             ]
-        );
-        $this->assertEquals("Hello world!", $actual);
+        ]);
+        $this->assertEquals("Hello world!", $valueProvider->value());
     }
 
     public function testFunctionValueWithNestedFunctionArg()
     {
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         function:
             name: date
             args:
@@ -88,17 +82,15 @@ final class ValueProviderTest extends TestCase
                             - arg:
                                 value_path: datestring
         EOT;
-        $config = Yaml::parse($config_yml);
+        $config = Yaml::parse($configYml);
 
-        $function_config = $config['function'];
-
-        $actual = ValueProvider::getFunctionValue(
-            $function_config,
+        $valueProvider = new ValueProvider(
+            $config,
             [
-                'format' => 'Y.m.d',
-                'datestring' => '2000-01-01'
+            'format' => 'Y.m.d',
+            'datestring' => '2000-01-01'
             ]
         );
-        $this->assertEquals("2000.01.01", $actual);
+        $this->assertEquals("2000.01.01", $valueProvider->value());
     }
 }

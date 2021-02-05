@@ -1,6 +1,8 @@
 {
     "name": "ergosarapu/wp-htmlblocks",
     "type": "wordpress-plugin",
+    "description": "WP HtmlBlocks plugin",
+    "license": "GPL-2.0-only",
     "require": {
         "php": ">=7.4",
         "composer/installers": "~1.0",
@@ -35,7 +37,7 @@
         ],
         "test": "./vendor/bin/phpunit",
         "format": "./vendor/bin/php-cs-fixer fix",
-        "phpcs": "./vendor/bin/phpcs --report=full --extensions=php -p --standard=phpcs.xml ./src ./tests",
-        "phpmd": "./vendor/bin/phpmd ./src,./tests text cleancode,codesize,controversial,design,naming,unusedcode"
+        "phpcs": "./vendor/bin/phpcs --report=full --extensions=php -p -s ./src ./tests",
+        "phpmd": "./vendor/bin/phpmd ./src,./tests text phpmd.xml"
     }
 }

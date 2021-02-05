@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/ergosarapu/wp-htmlblocks/workflows/build/badge.svg)](https://github.com/ergosarapu/wp-htmlblocks/actions)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
 # WP HtmlBlocks plugin
 
 Capture sections of HTML document into Wordpress Blocks so that HTML template can be filled with Wordpress content. Well-suited for composing HTML template based newsletters quickly and regularly.

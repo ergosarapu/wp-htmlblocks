@@ -6,8 +6,6 @@ use HTMLBlocks\HTMLBlocks;
 
 final class HTMLBlocksTest extends CFTest
 {
-    private array $config;
-
     public function setUp(): void
     {
         parent::setUp();
@@ -37,7 +35,7 @@ final class HTMLBlocksTest extends CFTest
 
     private function runInitBlocks(): bool
     {
-        $hb = new HTMLBlocks();
-        return $hb->initBlocks();
+        $htmlBlocks = new HTMLBlocks();
+        return $htmlBlocks->initBlocks();
     }
 }

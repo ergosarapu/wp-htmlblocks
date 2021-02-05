@@ -33,19 +33,21 @@ class BlockTemplate
 
     private array $blockConfig;
 
-    private ?DOMNode $lastNodeNextSiblingEffective;
+    private ?DOMNode $nextSiblingNode;
+
+    private DOMNodeList $nodes;
 
     public function __construct(
         DOMDocument $doc,
-        array &$block_config,
+        array &$blockConfig,
         BlockTemplate $parent = null,
-        BlockTemplate $prev_sibling = null
+        BlockTemplate $prevSibling = null
     ) {
         $this->doc = $doc;
         $this->domXPath = new DOMXPath($doc);
-        $this->blockConfig =& $block_config;
+        $this->blockConfig =& $blockConfig;
         $this->parent = $parent;
-        $this->prevSibling = $prev_sibling;
+        $this->prevSibling = $prevSibling;
         $this->children = [];
         $this->load();
     }
@@ -55,10 +57,10 @@ class BlockTemplate
         return $this->childrenMarker;
     }
 
-    public function setChildrenMarker(DOMNode $before_node): void
+    public function setChildrenMarker(DOMNode $beforeNode): void
     {
         $marker = $this->doc->createComment($this->blockConfig['name'] . ' children marker');
-        $before_node->parentNode->insertBefore($marker, $before_node);
+        $beforeNode->parentNode->insertBefore($marker, $beforeNode);
         $this->childrenMarker = $marker;
     }
 
@@ -101,60 +103,94 @@ class BlockTemplate
         return $node;
     }
 
-    private function setPrevSibling(BlockTemplate $prev_sibling)
+    protected function getLastNodeNextSiblingEffective(): DOMNode
     {
-        $this->prevSibling = $prev_sibling;
+        return $this->nextSiblingNode;
     }
 
-    private function getLastNodeNextSiblingEffective(): DOMNode
+    private function loadNodes()
     {
-        return $this->lastNodeNextSiblingEffective;
-    }
-
-    public function load()
-    {
-
         // XPath defining the block, allowed to match one or more closest sibling nodes
         $xpath = $this->blockConfig['xpath'];
 
         // Query nodes using XPath
-        $nodes = $this->getNodesByXPath($xpath, $this->domXPath);
+        $this->nodes = $this->getNodesByXPath($xpath, $this->domXPath);
+    }
 
+    private function removeNodes()
+    {
+        // Remove matched nodes from DOM
+        foreach ($this->nodes as $node) {
+            $node->parentNode->removeChild($node);
+        }
+    }
+
+    private function validateSiblingNodes(int $index): DOMNode
+    {
+        $node = $this->nodes->item($index);
+
+        // Check the node is sibling with previous node
+        if ($index < $this->nodes->length - 1) {
+            $expectedNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
+            $actual = $this->nodeOrNextSiblingEffective($this->nodes->item($index + 1));
+            if (!$actual->isSameNode($expectedNode)) {
+                throw new InvalidArgumentException(
+                    "Block nodes must be closest siblings. XPath: '" . $this->blockConfig['xpath'] . "'"
+                );
+            }
+        }
+
+        // Check the node is also closest sibling with the last template last node
+        if ($this->prevSibling && $index == 0) {
+            $expectedNode = $this->prevSibling->getLastNodeNextSiblingEffective();
+            $actual = $this->nodeOrNextSiblingEffective($node);
+
+            if (!$actual->isSameNode($expectedNode)) {
+                throw new InvalidArgumentException(
+                    "Closest block's nodes must be closest siblings. XPath '"
+                    . $this->blockConfig['xpath'] . "' "
+                    . "and XPath '" . $this->prevSibling->blockConfig['xpath']
+                    . "' are not matching closest siblings"
+                );
+            }
+        }
+        return $node;
+    }
+
+    private function createChildTemplates()
+    {
+        if (array_key_exists('blocks', $this->blockConfig)) {
+            $blocks =& $this->blockConfig['blocks'];
+            $lastTemplate = null;
+            foreach ($blocks as &$block) {
+                $block =& $block['block'];
+
+                $template = new BlockTemplate($this->doc, $block, $this, $lastTemplate);
+                array_push($this->children, $template);
+                $lastTemplate = $template;
+            }
+        }
+    }
+
+    public function load()
+    {
+        // Load nodes from parent document
+        $this->loadNodes();
+
+        // Create new document and replace existing
         $this->doc = new DOMDocument();
         $this->domXPath = new DOMXPath($this->doc);
 
-        // Remember first node from old document
-        for ($i = 0; $i < $nodes->length; $i++) {
-            $node = $nodes->item($i);
-
-            // Check the node is sibling with previous node
-            if ($i < $nodes->length - 1) {
-                $expected_node = $this->nodeOrNextSiblingEffective($node->nextSibling);
-                $actual = $this->nodeOrNextSiblingEffective($nodes->item($i + 1));
-                if (!$actual->isSameNode($expected_node)) {
-                    throw new InvalidArgumentException("Block nodes must be closest siblings. XPath: '$xpath'");
-                }
-            }
-
-            // Check the node is also closest sibling with the last template last node
-            if ($this->prevSibling && $i == 0) {
-                $expected_node = $this->prevSibling->getLastNodeNextSiblingEffective();
-                $actual = $this->nodeOrNextSiblingEffective($node);
-
-                if (!$actual->isSameNode($expected_node)) {
-                    throw new InvalidArgumentException(
-                        "Closest block's nodes must be closest siblings. XPath '$xpath' "
-                        . "and XPath '" . $this->prevSibling->blockConfig['xpath']
-                        . "' are not matching closest siblings"
-                    );
-                }
-            }
+        for ($i = 0; $i < $this->nodes->length; $i++) {
+            // Validate node
+            $node = $this->validateSiblingNodes($i);
 
             // Remember last node's next effective sibling (required when loading next sibling template, if applicable)
-            if ($i == $nodes->length - 1) {
-                $this->lastNodeNextSiblingEffective = $this->nodeOrNextSiblingEffective($node->nextSibling);
+            if ($i == $this->nodes->length - 1) {
+                $this->nextSiblingNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
             }
 
+            // Set marker
             if (!$this->prevSibling && $i == 0 && $this->parent) {
                 $this->parent->setChildrenMarker($node);
             }
@@ -163,30 +199,21 @@ class BlockTemplate
             $node = $this->doc->importNode($node, true);
             $node = $this->doc->appendChild($node);
         }
-        $html = $this->doc->saveHTML();
 
         // Create child templates
-        if (array_key_exists('blocks', $this->blockConfig)) {
-            $blocks =& $this->blockConfig['blocks'];
-            $last_template = null;
-            for ($b = 0; $b < count($blocks); $b++) {
-                $block =& $blocks[$b]['block'];
+        $this->createChildTemplates();
 
-                $template = new BlockTemplate($this->doc, $block, $this, $last_template);
-                array_push($this->children, $template);
-                $last_template = $template;
-            }
-        }
+        // Set render callback, note the __invoke magic method!
+        $this->blockConfig['render_callback'] = $this;
 
-        // Set render callback
-        $this->blockConfig['render_callback'] = function ($cf_values, $attributes, $inner_blocks) {
-            echo $this->render($cf_values, $inner_blocks);
-        };
+        // Remove matched nodes from parent document
+        $this->removeNodes();
+    }
 
-        // Remove matched nodes from DOM
-        foreach ($nodes as $node) {
-            $node->parentNode->removeChild($node);
-        }
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
+    public function __invoke($cfValues, $attributes, $innerBlocks)
+    {
+        echo $this->render($cfValues, $innerBlocks);
     }
 
     /**
@@ -204,50 +231,43 @@ class BlockTemplate
         return $nodes;
     }
 
-    public function render(array $cf_values, string $cf_inner_blocks_html): string
+    public function render(array $cfValues, string $cfInnerBlocksHtml): string
     {
         // Do not modify the template doc directly, create copy first
         $copy = $this->doc->cloneNode(true);
 
         // Render fields
-        $this->renderFields($cf_values, $copy);
+        $this->renderFields($cfValues, $copy);
 
         // Save HTML
         $html = $this->saveHTML($copy);
 
         // Replace child marker with inner HTML
         if ($this->getChildrenMarkerName()) {
-            $html = preg_replace('/<!--' . $this->getChildrenMarkerName() . '-->/', $cf_inner_blocks_html, $html, 1);
+            $html = preg_replace('/<!--' . $this->getChildrenMarkerName() . '-->/', $cfInnerBlocksHtml, $html, 1);
         }
 
         return $html;
     }
 
-    private function renderFields(array $cf_values, DOMDocument $doc): void
+    private function renderFields(array $cfValues, DOMDocument $doc): void
     {
         if (!array_key_exists('fields', $this->blockConfig)) {
             return;
         }
-        $dom_xpath = new DOMXPath($doc);
-        $fields_config = $this->blockConfig['fields'];
-        foreach ($fields_config as $field_config) {
-            $field = $field_config['field'];
+        $domXpath = new DOMXPath($doc);
+        $fieldsConfig = $this->blockConfig['fields'];
+        foreach ($fieldsConfig as $fieldConfig) {
+            $field = $fieldConfig['field'];
 
             $replaces = $field['replaces'];
             foreach ($replaces as $replace) {
                 $replace = $replace['replace'];
                 $xpath = $replace['xpath'];
+                $valueProvider = new ValueProvider($replace, $cfValues);
+                $value = $valueProvider->value();
 
-                $value = null;
-                if (array_key_exists('value_path', $replace)) {
-                    $value = ValueProvider::getValuePathValue($replace['value_path'], $cf_values);
-                } elseif (array_key_exists('function', $replace)) {
-                    $value = ValueProvider::getFunctionValue($replace['function'], $cf_values);
-                } else {
-                    throw new InvalidArgumentException("Missing 'value_path' or 'function' attribute.");
-                }
-
-                $nodes = $this->getNodesByXPath($xpath, $dom_xpath);
+                $nodes = $this->getNodesByXPath($xpath, $domXpath);
                 foreach ($nodes as $node) {
                     if ($node instanceof DOMText) {
                         $fragment = $doc->createDocumentFragment();
@@ -280,15 +300,6 @@ class BlockTemplate
         $html = $doc->saveHTML($node);
         $html = str_replace('%7B', '{', $html);
         $html = str_replace('%7D', '}', $html);
-        return $html;
-    }
-
-    private function saveNodeListHTML(DOMNodeList $nodes): string
-    {
-        $html = '';
-        foreach ($nodes as $node) {
-            $html .= $this->saveHTML($this->doc, $node);
-        }
         return $html;
     }
 }

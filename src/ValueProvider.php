@@ -6,15 +6,35 @@ use InvalidArgumentException;
 
 final class ValueProvider
 {
-    public static function getFunctionValue(
-        array $function_config,
-        array $cf_values
+    private array $valueConfig;
+
+    private array $cfValues;
+
+    public function __construct(array $valueConfig, array $cfValues)
+    {
+        $this->valueConfig = $valueConfig;
+        $this->cfValues = $cfValues;
+    }
+
+    public function value(): string
+    {
+        if (array_key_exists('value_path', $this->valueConfig)) {
+            return self::getValuePathValue($this->valueConfig['value_path'], $this->cfValues);
+        } elseif (array_key_exists('function', $this->valueConfig)) {
+            return self::getFunctionValue($this->valueConfig['function'], $this->cfValues);
+        }
+        throw new InvalidArgumentException("Missing 'value_path' or 'function' attribute.");
+    }
+
+    private static function getFunctionValue(
+        array $functionConfig,
+        array $cfValues
     ): string {
-        $name = $function_config['name'];
+        $name = $functionConfig['name'];
 
         // Build function arguments
         $arguments = [];
-        foreach ($function_config['args'] as $arg) {
+        foreach ($functionConfig['args'] as $arg) {
             $arg = $arg['arg'];
 
             // Static value
@@ -25,13 +45,13 @@ final class ValueProvider
 
             // Value from value path
             if (array_key_exists('value_path', $arg)) {
-                array_push($arguments, self::getValuePathValue($arg['value_path'], $cf_values));
+                array_push($arguments, self::getValuePathValue($arg['value_path'], $cfValues));
                 continue;
             }
 
             // Value from function
             if (array_key_exists('function', $arg)) {
-                array_push($arguments, self::getFunctionValue($arg['function'], $cf_values));
+                array_push($arguments, self::getFunctionValue($arg['function'], $cfValues));
                 continue;
             }
 
@@ -42,9 +62,9 @@ final class ValueProvider
         return $result;
     }
 
-    public static function getValuePathValue(string $value_path, array $cf_values)
+    private static function getValuePathValue(string $valuePath, array $cfValues)
     {
-        $dot_cf_values = dot($cf_values);
-        return $dot_cf_values->get($value_path);
+        $dotCfValues = dot($cfValues);
+        return $dotCfValues->get($valuePath);
     }
 }

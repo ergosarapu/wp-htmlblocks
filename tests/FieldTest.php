@@ -11,7 +11,7 @@ final class FieldTest extends CFTest
 {
     public function testMakeAssociationField()
     {
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         type: association
         name: posts
         label: Posts
@@ -29,19 +29,19 @@ final class FieldTest extends CFTest
               args:
                 - 2
         EOT;
-        $field_config = Yaml::parse($config_yml);
-        $field = new Field($field_config);
+        $fieldConfig = Yaml::parse($configYml);
+        $field = new Field($fieldConfig);
         /** @var $cf_field Association_Field $a */
-        $cf_field = $field->getCfField();
-        $this->assertInstanceOf(Association_Field::class, $cf_field);
-        $this->assertEquals($field_config['config'][0]['args'][0], $cf_field->get_types());
-        $this->assertEquals($field_config['config'][1]['args'][0], $cf_field->get_min());
-        $this->assertEquals($field_config['config'][2]['args'][0], $cf_field->get_max());
+        $cfField = $field->getCfField();
+        $this->assertInstanceOf(Association_Field::class, $cfField);
+        $this->assertEquals($fieldConfig['config'][0]['args'][0], $cfField->get_types());
+        $this->assertEquals($fieldConfig['config'][1]['args'][0], $cfField->get_min());
+        $this->assertEquals($fieldConfig['config'][2]['args'][0], $cfField->get_max());
     }
 
     public function testMakeTextField()
     {
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         type: text
         name: phone
         label: Text
@@ -51,14 +51,14 @@ final class FieldTest extends CFTest
                 - placeholder
                 - (***) ***-****
         EOT;
-        $field_config = Yaml::parse($config_yml);
-        $field = new Field($field_config);
+        $fieldConfig = Yaml::parse($configYml);
+        $field = new Field($fieldConfig);
         /** @var $cf_field Text_Field $a */
-        $cf_field = $field->getCfField();
-        $this->assertInstanceOf(Text_Field::class, $cf_field);
+        $cfField = $field->getCfField();
+        $this->assertInstanceOf(Text_Field::class, $cfField);
         $this->assertEquals(
-            $field_config['config'][0]['args'][1],
-            $cf_field->get_attribute($field_config['config'][0]['args'][0])
+            $fieldConfig['config'][0]['args'][1],
+            $cfField->get_attribute($fieldConfig['config'][0]['args'][0])
         );
     }
 }

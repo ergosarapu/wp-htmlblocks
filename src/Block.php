@@ -13,9 +13,9 @@ class Block
 
     private Block_Container $cfBlock;
 
-    public function __construct(array $block_config, Block $parent = null)
+    public function __construct(array $blockConfig, Block $parent = null)
     {
-        $this->blockConfig = $block_config;
+        $this->blockConfig = $blockConfig;
         $this->parent = $parent;
         $this->makeBlock();
     }
@@ -41,14 +41,14 @@ class Block
         if ($this->parent) {
             $this->cfBlock->set_parent($this->parent->getBlockName());
         }
-        $fields = $this->blockConfig['fields'];
-        $cf_fields = [];
-        foreach ($fields as $field) {
-            $field = $field['field'];
-            $f = new Field($field);
-            array_push($cf_fields, $f->getCfField());
+        $fieldConfigs = $this->blockConfig['fields'];
+        $cfFields = [];
+        foreach ($fieldConfigs as $fieldConfig) {
+            $fieldConfig = $fieldConfig['field'];
+            $field = new Field($fieldConfig);
+            array_push($cfFields, $field->getCfField());
         }
-        $this->cfBlock->add_fields($cf_fields);
+        $this->cfBlock->add_fields($cfFields);
 
         // Set description
         $this->cfBlock->set_description($this->blockConfig['description']);
@@ -65,25 +65,26 @@ class Block
             $this->cfBlock->set_icon($this->blockConfig['icon']);
         }
 
+        // Default render callback
+        $renderCallback = function () {
+            echo 'Error: Render callback not present in config. Nothing to display here.';
+        };
         // Set render callback if present in config
         if (array_key_exists('render_callback', $this->blockConfig)) {
-            $this->cfBlock->set_render_callback($this->blockConfig['render_callback']);
-        } else {
-            $this->cfBlock->set_render_callback(function () {
-                echo 'Error: Render callback not present in config. Nothing to display here.';
-            });
+            $renderCallback = $this->blockConfig['render_callback'];
         }
+        $this->cfBlock->set_render_callback($renderCallback);
 
         if (array_key_exists('blocks', $this->blockConfig)) {
             $this->cfBlock->set_inner_blocks(true);
             $this->cfBlock->set_inner_blocks_position('below');
 
-            $allowed_inner_block_names = [];
+            $innerBlockNames = [];
             foreach ($this->blockConfig['blocks'] as $block) {
                 $child = new Block($block['block'], $this);
-                array_push($allowed_inner_block_names, $child->getBlockName());
+                array_push($innerBlockNames, $child->getBlockName());
             }
-            $this->cfBlock->set_allowed_inner_blocks($allowed_inner_block_names);
+            $this->cfBlock->set_allowed_inner_blocks($innerBlockNames);
         }
     }
 }

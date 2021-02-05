@@ -36,7 +36,7 @@ class HTMLBlocks
         new BlockTemplate($doc, $config);
 
         // Create block tree
-        $block = new Block($config);
+        new Block($config);
 
         return true;
     }
