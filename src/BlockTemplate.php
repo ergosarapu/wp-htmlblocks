@@ -35,6 +35,8 @@ class BlockTemplate
 
     private ?DOMNode $nextSiblingNode;
 
+    private DOMNodeList $nodes;
+
     public function __construct(
         DOMDocument $doc,
         array &$blockConfig,
@@ -106,60 +108,55 @@ class BlockTemplate
         return $this->nextSiblingNode;
     }
 
-    public function load()
+    private function loadNodes()
     {
-
         // XPath defining the block, allowed to match one or more closest sibling nodes
         $xpath = $this->blockConfig['xpath'];
 
         // Query nodes using XPath
-        $nodes = $this->getNodesByXPath($xpath, $this->domXPath);
+        $this->nodes = $this->getNodesByXPath($xpath, $this->domXPath);
+    }
 
-        $this->doc = new DOMDocument();
-        $this->domXPath = new DOMXPath($this->doc);
+    private function removeNodes()
+    {
+        // Remove matched nodes from DOM
+        foreach ($this->nodes as $node) {
+            $node->parentNode->removeChild($node);
+        }
+    }
 
-        // Remember first node from old document
-        for ($i = 0; $i < $nodes->length; $i++) {
-            $node = $nodes->item($i);
+    private function validateSiblingNodes(int $index): DOMNode
+    {
+        $node = $this->nodes->item($index);
 
-            // Check the node is sibling with previous node
-            if ($i < $nodes->length - 1) {
-                $expectedNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
-                $actual = $this->nodeOrNextSiblingEffective($nodes->item($i + 1));
-                if (!$actual->isSameNode($expectedNode)) {
-                    throw new InvalidArgumentException("Block nodes must be closest siblings. XPath: '$xpath'");
-                }
+        // Check the node is sibling with previous node
+        if ($index < $this->nodes->length - 1) {
+            $expectedNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
+            $actual = $this->nodeOrNextSiblingEffective($this->nodes->item($index + 1));
+            if (!$actual->isSameNode($expectedNode)) {
+                throw new InvalidArgumentException("Block nodes must be closest siblings. XPath: '" . $this->blockConfig['xpath'] . "'");
             }
-
-            // Check the node is also closest sibling with the last template last node
-            if ($this->prevSibling && $i == 0) {
-                $expectedNode = $this->prevSibling->getLastNodeNextSiblingEffective();
-                $actual = $this->nodeOrNextSiblingEffective($node);
-
-                if (!$actual->isSameNode($expectedNode)) {
-                    throw new InvalidArgumentException(
-                        "Closest block's nodes must be closest siblings. XPath '$xpath' "
-                        . "and XPath '" . $this->prevSibling->blockConfig['xpath']
-                        . "' are not matching closest siblings"
-                    );
-                }
-            }
-
-            // Remember last node's next effective sibling (required when loading next sibling template, if applicable)
-            if ($i == $nodes->length - 1) {
-                $this->nextSiblingNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
-            }
-
-            if (!$this->prevSibling && $i == 0 && $this->parent) {
-                $this->parent->setChildrenMarker($node);
-            }
-
-            // Copy node to new document
-            $node = $this->doc->importNode($node, true);
-            $node = $this->doc->appendChild($node);
         }
 
-        // Create child templates
+        // Check the node is also closest sibling with the last template last node
+        if ($this->prevSibling && $index == 0) {
+            $expectedNode = $this->prevSibling->getLastNodeNextSiblingEffective();
+            $actual = $this->nodeOrNextSiblingEffective($node);
+
+            if (!$actual->isSameNode($expectedNode)) {
+                throw new InvalidArgumentException(
+                    "Closest block's nodes must be closest siblings. XPath '"
+                    . $this->blockConfig['xpath'] . "' "
+                    . "and XPath '" . $this->prevSibling->blockConfig['xpath']
+                    . "' are not matching closest siblings"
+                );
+            }
+        }
+        return $node;
+    }
+
+    private function createChildTemplates()
+    {
         if (array_key_exists('blocks', $this->blockConfig)) {
             $blocks =& $this->blockConfig['blocks'];
             $lastTemplate = null;
@@ -171,14 +168,44 @@ class BlockTemplate
                 $lastTemplate = $template;
             }
         }
+    }
+
+    public function load()
+    {
+        // Load nodes from parent document
+        $this->loadNodes();
+
+        // Create new document and replace existing
+        $this->doc = new DOMDocument();
+        $this->domXPath = new DOMXPath($this->doc);
+
+        for ($i = 0; $i < $this->nodes->length; $i++) {
+            // Validate node
+            $node = $this->validateSiblingNodes($i);
+
+            // Remember last node's next effective sibling (required when loading next sibling template, if applicable)
+            if ($i == $this->nodes->length - 1) {
+                $this->nextSiblingNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
+            }
+
+            // Set marker
+            if (!$this->prevSibling && $i == 0 && $this->parent) {
+                $this->parent->setChildrenMarker($node);
+            }
+
+            // Copy node to new document
+            $node = $this->doc->importNode($node, true);
+            $node = $this->doc->appendChild($node);
+        }
+
+        // Create child templates
+        $this->createChildTemplates();
 
         // Set render callback, note the __invoke magic method!
         $this->blockConfig['render_callback'] = $this;
 
-        // Remove matched nodes from DOM
-        foreach ($nodes as $node) {
-            $node->parentNode->removeChild($node);
-        }
+        // Remove matched nodes from parent document
+        $this->removeNodes();
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
