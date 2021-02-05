@@ -17,7 +17,7 @@ final class BlockTemplateRenderTest extends TestCase
     public function testRenderNestedBlocksStructure()
     {
         // Init Block config
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         name: 0-0
         xpath: //div[@id="0-0"]
         blocks:
@@ -29,10 +29,10 @@ final class BlockTemplateRenderTest extends TestCase
                         name: 2-0
                         xpath: //div[@id="2-0"]
         EOT;
-        $block_config = Yaml::parse($config_yml);
+        $blockConfig = Yaml::parse($configYml);
 
         // Init HTML
-        $block_html = <<<EOT
+        $blockHtml = <<<EOT
         <div id="0-0">0-0
             <div id="1-0">1-0
                 <div id="2-0">2-0</div>
@@ -40,20 +40,20 @@ final class BlockTemplateRenderTest extends TestCase
         </div>
         EOT;
         $doc = new DOMDocument();
-        $doc->loadHTML($block_html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $doc->loadHTML($blockHtml, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         // Init template tree
-        $tmpl_00 = new BlockTemplate($doc, $block_config);
-        $tmpl_10 = $tmpl_00->getChildren()[0];
-        $tmpl_20 = $tmpl_10->getChildren()[0];
+        $tmpl00 = new BlockTemplate($doc, $blockConfig);
+        $tmpl10 = $tmpl00->getChildren()[0];
+        $tmpl20 = $tmpl10->getChildren()[0];
 
         // Render templates
-        $str_20 = $tmpl_20->render([], '');
-        $str_20 .= $tmpl_20->render([], ''); // Render inner template second time
-        $str_10 = $tmpl_10->render([], $str_20);
-        $str_10 .= $tmpl_10->render([], $str_20); // Render inner template second time
-        $str_00 = $tmpl_00->render([], $str_10);
-        $actual = preg_replace("/\s+/", "", $str_00);
+        $str20 = $tmpl20->render([], '');
+        $str20 .= $tmpl20->render([], ''); // Render inner template second time
+        $str10 = $tmpl10->render([], $str20);
+        $str10 .= $tmpl10->render([], $str20); // Render inner template second time
+        $str00 = $tmpl00->render([], $str10);
+        $actual = preg_replace("/\s+/", "", $str00);
 
         $expected = <<<EOT
         <div id="0-0">0-0
@@ -74,7 +74,7 @@ final class BlockTemplateRenderTest extends TestCase
     public function testRenderMissingReplaceValuePathOrFunction()
     {
         // Set up fields configuration
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         name: Block 0-0
         xpath: //div[@id="0-0"]
         fields:
@@ -85,30 +85,30 @@ final class BlockTemplateRenderTest extends TestCase
                     - replace:
                         xpath: //div/text()
         EOT;
-        $block_config = Yaml::parse($config_yml);
+        $blockConfig = Yaml::parse($configYml);
 
         // Init HTML
-        $block_html = '<div id="0-0">old text</div>';
+        $blockHtml = '<div id="0-0">old text</div>';
         $doc = new DOMDocument();
-        $doc->loadHTML($block_html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $doc->loadHTML($blockHtml, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         // Init template tree
-        $tmpl = new BlockTemplate($doc, $block_config);
+        $tmpl = new BlockTemplate($doc, $blockConfig);
 
         // Set up Carbon Fields values
-        $cf_values = ['text_field' => 'new text'];
+        $cfValues = ['text_field' => 'new text'];
 
         $this->expectException("InvalidArgumentException");
         $this->expectExceptionMessage("Missing 'value_path' or 'function' attribute.");
 
         // Run test
-        $actual = $tmpl->render($cf_values, '');
+        $tmpl->render($cfValues, '');
     }
 
     public function testRenderTextNode()
     {
         // Set up fields configuration
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         name: Block 0-0
         xpath: //div[@id="0-0"]
         fields:
@@ -120,30 +120,30 @@ final class BlockTemplateRenderTest extends TestCase
                         xpath: //div/text()
                         value_path: text_field
         EOT;
-        $block_config = Yaml::parse($config_yml);
+        $blockConfig = Yaml::parse($configYml);
 
         // Init HTML
-        $block_html = '<div id="0-0">old text</div>';
+        $blockHtml = '<div id="0-0">old text</div>';
         $doc = new DOMDocument();
-        $doc->loadHTML($block_html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $doc->loadHTML($blockHtml, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         // Init template tree
-        $tmpl = new BlockTemplate($doc, $block_config);
+        $tmpl = new BlockTemplate($doc, $blockConfig);
 
         // Set up Carbon Fields values
-        $cf_values = ['text_field' => 'new text'];
+        $cfValues = ['text_field' => 'new text'];
 
         // Run test
-        $actual = $tmpl->render($cf_values, '');
+        $actual = $tmpl->render($cfValues, '');
 
-        $expected = \str_replace('old', 'new', $block_html);
+        $expected = \str_replace('old', 'new', $blockHtml);
         $this->assertEquals($expected, trim($actual));
     }
 
     public function testRenderAttrNode()
     {
         // Set up fields configuration
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         name: Block 0-0
         xpath: //img
         fields:
@@ -159,7 +159,7 @@ final class BlockTemplateRenderTest extends TestCase
                                 - arg:
                                     value_path: img_field
         EOT;
-        $block_config = Yaml::parse($config_yml);
+        $blockConfig = Yaml::parse($configYml);
 
         // Set up HTML
         $html = '<img src="http://example.com/old.jpg">';
@@ -167,16 +167,16 @@ final class BlockTemplateRenderTest extends TestCase
         $doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         // Init template tree
-        $tmpl = new BlockTemplate($doc, $block_config);
+        $tmpl = new BlockTemplate($doc, $blockConfig);
 
         // Set up Carbon Fields values
-        $cf_values = ['img_field' => 10];
+        $cfValues = ['img_field' => 10];
 
         // Mock WP functions
         WP_Mock::userFunction('wp_get_attachment_image_url')->with(10)->andReturn('http://example.com/new.jpg');
 
         // Run test
-        $actual = $tmpl->render($cf_values, '');
+        $actual = $tmpl->render($cfValues, '');
         $expected = \str_replace('old', 'new', $html);
         $this->assertEquals($expected, trim($actual));
     }
@@ -184,7 +184,7 @@ final class BlockTemplateRenderTest extends TestCase
     public function testRenderFieldTypeAssociation()
     {
         // Set up fields configuration
-        $config_yml = <<<EOT
+        $configYml = <<<EOT
         name: Block 0-0
         xpath: //div[@id="0-0"]
         fields:
@@ -222,7 +222,7 @@ final class BlockTemplateRenderTest extends TestCase
                                 - arg:
                                     value_path: posts.1.id
         EOT;
-        $block_config = Yaml::parse($config_yml);
+        $blockConfig = Yaml::parse($configYml);
 
         // Set up HTML
         $html = <<<EOT
@@ -238,10 +238,10 @@ final class BlockTemplateRenderTest extends TestCase
         $doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         // Init template tree
-        $tmpl = new BlockTemplate($doc, $block_config);
+        $tmpl = new BlockTemplate($doc, $blockConfig);
 
         // Set up Carbon Fields values
-        $cf_values = [
+        $cfValues = [
             'posts' => [
                 [
                     'id' => 11
@@ -257,7 +257,7 @@ final class BlockTemplateRenderTest extends TestCase
         WP_Mock::userFunction('get_permalink')->with(10)->andReturn('http://example.com/new');
 
         // Run test
-        $actual = $tmpl->render($cf_values, '');
+        $actual = $tmpl->render($cfValues, '');
         $expected = \str_replace('old', 'new', $html);
         $this->assertEquals($expected, trim($actual));
     }

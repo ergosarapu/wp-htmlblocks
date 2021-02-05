@@ -21,11 +21,11 @@ final class BlockTest extends CFTest
         WP_Mock::passthruFunction('remove_accents');
 
         $block = new Block($this->config);
-        $id = $block->getCFBlock()->get_id();
+        $blockId = $block->getCFBlock()->get_id();
 
         // This line is from CF Block_Container implementation
-        $block_type_name = str_replace('carbon-fields-container-', 'carbon-fields/', str_replace('_', '-', $id));
+        $blockTypeName = str_replace('carbon-fields-container-', 'carbon-fields/', str_replace('_', '-', $blockId));
 
-        $this->assertEquals($block_type_name, $block->getBlockName());
+        $this->assertEquals($blockTypeName, $block->getBlockName());
     }
 }

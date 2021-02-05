@@ -10,15 +10,15 @@ class Field
 
     private CFFIeld $cfField;
 
-    public function __construct(array $field_config)
+    public function __construct(array $fieldConfig)
     {
-        $this->fieldConfig = $field_config;
+        $this->fieldConfig = $fieldConfig;
         $this->cfField = $this->makeField();
     }
 
     private function makeField(): CFField
     {
-        $cf_field = CFField::make(
+        $cfField = CFField::make(
             $this->fieldConfig['type'],
             $this->fieldConfig['name'],
             $this->fieldConfig['label']
@@ -28,11 +28,11 @@ class Field
         if (array_key_exists('config', $this->fieldConfig)) {
             $functions = $this->fieldConfig['config'];
             foreach ($functions as $function) {
-                call_user_func_array([$cf_field, $function['function']], $function['args']);
+                call_user_func_array([$cfField, $function['function']], $function['args']);
             }
         }
 
-        return $cf_field;
+        return $cfField;
     }
 
     /**
