@@ -134,7 +134,9 @@ class BlockTemplate
             $expectedNode = $this->nodeOrNextSiblingEffective($node->nextSibling);
             $actual = $this->nodeOrNextSiblingEffective($this->nodes->item($index + 1));
             if (!$actual->isSameNode($expectedNode)) {
-                throw new InvalidArgumentException("Block nodes must be closest siblings. XPath: '" . $this->blockConfig['xpath'] . "'");
+                throw new InvalidArgumentException(
+                    "Block nodes must be closest siblings. XPath: '" . $this->blockConfig['xpath'] . "'"
+                );
             }
         }
 
