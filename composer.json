@@ -37,7 +37,7 @@
         ],
         "test": "./vendor/bin/phpunit",
         "format": "./vendor/bin/php-cs-fixer fix",
-        "phpcs": "./vendor/bin/phpcs --report=full --extensions=php -p -s --standard=phpcs.xml ./src ./tests",
+        "phpcs": "./vendor/bin/phpcs --report=full --extensions=php -p -s ./src ./tests",
         "phpmd": "./vendor/bin/phpmd ./src,./tests text phpmd.xml"
     }
 }
