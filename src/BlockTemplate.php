@@ -69,11 +69,6 @@ class BlockTemplate
         return $this->children;
     }
 
-    public function getLastNodeEffective(): DOMNode
-    {
-        return $this->nodeOrPreviousSiblingEffective($this->getLastNode());
-    }
-
     public function getChildrenMarkerName(): ?string
     {
         $marker = $this->getChildrenMarker();
@@ -81,18 +76,6 @@ class BlockTemplate
             return $marker->nodeValue;
         }
         return null;
-    }
-
-    private function nodeOrPreviousSiblingEffective(DOMNode $node): DOMNode
-    {
-        // Ignore previous empty text node and comment siblings
-        while (
-            ($node instanceof DOMText && trim($node->wholeText) == '') ||
-            $node instanceof DOMComment
-        ) {
-            $node = $node->previousSibling;
-        }
-        return $node;
     }
 
     private function nodeOrNextSiblingEffective(?DOMNode $node): ?DOMNode
