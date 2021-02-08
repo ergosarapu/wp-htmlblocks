@@ -56,6 +56,7 @@ Example HTML:
 Example YAML configuration:
 ```yaml
 block: # Define block
+  html: example.html # Path to html template file
   name: Newsletter # Block name
   description: Newsletter block # Block description
   xpath: //html # Select whole HTML to render this Block
