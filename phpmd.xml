@@ -15,7 +15,7 @@
     </rule>
     <rule ref="rulesets/cleancode.xml/StaticAccess">
         <properties>
-            <property name="exceptions" value="\Carbon_Fields\Carbon_Fields,\Carbon_Fields\Block,\Carbon_Fields\Field\Field,\Symfony\Component\Yaml\Yaml,\WP_Mock" />
+            <property name="exceptions" value="\Carbon_Fields\Carbon_Fields,\Carbon_Fields\Block,\Carbon_Fields\Field\Field,\Symfony\Component\Yaml\Yaml,\WP_Mock,\Eloquent\Pathogen\Path" />
         </properties>
     </rule>
     <rule ref="rulesets/design.xml" />

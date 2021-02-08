@@ -10,7 +10,8 @@
         "symfony/yaml": "^5.2",
         "oscarotero/env": "^2.1",
         "adbario/php-dot-notation": "^2.2",
-        "mnsami/composer-custom-directory-installer": "^2.0"
+        "mnsami/composer-custom-directory-installer": "^2.0",
+        "mschop/pathogen": "^0.6.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^9",

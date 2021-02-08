@@ -1,4 +1,5 @@
 block:
+    html: test.html
     name: Block 0-0
     description: Block 0-0
     category:

@@ -1,4 +1,5 @@
 block: # Define block
+  html: example.html
   name: Newsletter # Block name
   description: Newsletter block # Block description
   xpath: //html # Select whole HTML to render this Block

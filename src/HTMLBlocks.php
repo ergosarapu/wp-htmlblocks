@@ -3,9 +3,7 @@
 namespace HTMLBlocks;
 
 use DOMDocument;
-use Symfony\Component\Yaml\Yaml;
-
-use function Env\env;
+use ValueError;
 
 /**
  * HTMLBlocks.
@@ -24,20 +22,26 @@ class HTMLBlocks
 
     public function initBlocks(): bool
     {
-        if (!env('HTMLBLOCKS_CONFIG') || !env('HTMLBLOCKS_HTML')) {
+        try {
+            $configLoader = new ConfigLoader();
+            $configList = $configLoader->listConfigs();
+        } catch (ValueError $err) {
             return false;
         }
-        $config = Yaml::parseFile(env('HTMLBLOCKS_CONFIG'))['block'];
 
-        $doc = new DOMDocument();
-        $doc->loadHTMLFile(env('HTMLBLOCKS_HTML'));
+        /** @var Config $conf */
+        foreach ($configList as $conf) {
+            // Create DOM for HTML
+            $doc = new DOMDocument();
+            $doc->loadHTMLFile($conf->getHtmlPath());
 
-        // Create template tree
-        new BlockTemplate($doc, $config);
+            // Create template tree
+            $confArr = $conf->getConfig();
+            new BlockTemplate($doc, $confArr);
 
-        // Create block tree
-        new Block($config);
-
+            // Create block tree
+            new Block($confArr);
+        }
         return true;
     }
 }

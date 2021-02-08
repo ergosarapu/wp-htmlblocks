@@ -78,6 +78,11 @@ properties:
             - description
             - xpath
         properties:
+            html:
+                type: string
+                title: HTML file
+                description: Path to HTML file to use as template
+                default: ""
             name:
                 type: string
                 title: Block name

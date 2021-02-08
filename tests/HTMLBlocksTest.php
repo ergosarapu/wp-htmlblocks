@@ -10,7 +10,6 @@ final class HTMLBlocksTest extends CFTest
     {
         parent::setUp();
         putenv('HTMLBLOCKS_CONFIG=./tests/config/testLoadConfig.yml');
-        putenv('HTMLBLOCKS_HTML=./tests/config/test.html');
     }
 
     public function testInitBlocks()
@@ -22,13 +21,6 @@ final class HTMLBlocksTest extends CFTest
     public function testInitBlocksNoBlocksConfigInEnv()
     {
         putenv('HTMLBLOCKS_CONFIG');
-        $success = $this->runInitBlocks();
-        $this->assertFalse($success);
-    }
-
-    public function testInitBlocksNoHTMLConfigInEnv()
-    {
-        putenv('HTMLBLOCKS_HTML');
         $success = $this->runInitBlocks();
         $this->assertFalse($success);
     }
