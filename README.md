@@ -39,9 +39,12 @@ composer require "ergosarapu/wp-htmlblocks"
 
 # Configuration
 
-Configuration is currently loaded when environment variable `HTMLBLOCKS_CONFIG` is set to a valid YAML configuration file.
+Configuration is currently loaded when environment variable `HTMLBLOCKS_CONFIG` is set to a valid YAML configuration file. For multiple configurations separate paths using [PATH_SEPARATOR](https://www.php.net/manual/en/dir.constants.php), e.g.
+ * `/path/to/config1.yml;/path/to/config2.yml` on Windows;
+ * `/path/to/config1.yml:/path/to/config2.yml` otherwise;
 
-Example HTML:
+# Example
+HTML:
 ```html
 <html>
     <h1>Greeting</h1>
@@ -53,7 +56,7 @@ Example HTML:
     </table>
 </html>
 ```
-Example YAML configuration:
+YAML configuration:
 ```yaml
 block: # Define block
   html: example.html # Path to html template file
@@ -122,13 +125,27 @@ block: # Define block
                                 - arg:
                                     value_path: posts.1.id
 ```
-Example blocks in WP admin:
+Result blocks in WP admin:
 
 ![WP Admin](examples/example-admin.png)
 
-Example rendered result:
+Rendered HTML result:
 
-![WP Admin Result](examples/example-result.png)
+```html
+<html>
+<body>
+    <h1>Hello World!</h1>
+    <table>
+        <tr>
+            <td id="post_left">Privacy Policy</td>
+            <td id="post_right">SAMPLE PAGE</td>
+        </tr>
+    </table>
+</body>
+</html>
+```
+
+**Note!** The final end-result depends on the template used to render the post. You may want to render the output within plain template, for that you can use a specific plugin to set blank template for the post or modify your theme to support blank template.
 # Tasks
 
 - `composer build` - build by running tests and code checks
