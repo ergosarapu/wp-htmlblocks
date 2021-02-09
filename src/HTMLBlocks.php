@@ -3,7 +3,7 @@
 namespace HTMLBlocks;
 
 use DOMDocument;
-use ValueError;
+use Throwable;
 
 /**
  * HTMLBlocks.
@@ -25,22 +25,25 @@ class HTMLBlocks
         try {
             $configLoader = new ConfigLoader();
             $configList = $configLoader->listConfigs();
-        } catch (ValueError $err) {
+
+            /** @var Config $conf */
+            foreach ($configList as $conf) {
+                // Create DOM for HTML
+                $doc = new DOMDocument();
+                $doc->loadHTMLFile($conf->getHtmlPath());
+
+                // Create template tree
+                $confArr = $conf->getConfig();
+                new BlockTemplate($doc, $confArr);
+
+                // Create block tree
+                new Block($confArr);
+            }
+        } catch (Throwable $th) {
+            // Catch all exceptions and log them, in future maybe a GUI would make sense
+            // to implement for misconfiguration feedback
+            error_log($th);
             return false;
-        }
-
-        /** @var Config $conf */
-        foreach ($configList as $conf) {
-            // Create DOM for HTML
-            $doc = new DOMDocument();
-            $doc->loadHTMLFile($conf->getHtmlPath());
-
-            // Create template tree
-            $confArr = $conf->getConfig();
-            new BlockTemplate($doc, $confArr);
-
-            // Create block tree
-            new Block($confArr);
         }
         return true;
     }
