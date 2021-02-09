@@ -30,6 +30,8 @@ Configuration is currently loaded when environment variable `HTMLBLOCKS_CONFIG` 
  * `/path/to/config1.yml;/path/to/config2.yml` on Windows;
  * `/path/to/config1.yml:/path/to/config2.yml` otherwise;
 
+Configuration errors are logged to `error_log`, in case blocks do not appear in WP post editor, seek culprit from logs.
+
 # Example
 HTML:
 ```html
