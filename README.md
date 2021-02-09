@@ -6,22 +6,9 @@ Capture sections of HTML document into Wordpress Blocks so that HTML template ca
 
 # Install using Composer
 
-Add repository into composer.json (this is required until the package gets distributed throgh packagist):
-
-```json
-"repositories": [
-    ...
-    {
-      "name": "ergosarapu/wp-htmlblocks",
-      "type": "vcs",
-      "url": "git@bitbucket.org:ergosarapu/wp-htmlblocks.git"
-    }
-  ]
-```
-
 The plugin uses [Carbon Fields](https://github.com/htmlburger/carbon-fields) composer dependency. Carbon Fields library contains JS/CSS assets, which are requested by wp-admin but not found due to the default vendor directory not being a web directory.
 
-A workaround is to install Carbon Fields library to web directory by changing installer-paths for "htmlburger/carbon-fields":
+A workaround is to install Carbon Fields library to web directory by changing installer-paths for "htmlburger/carbon-fields", change your composer.json accordingly:
 
 ```json
 "extra": {
@@ -31,7 +18,7 @@ A workaround is to install Carbon Fields library to web directory by changing in
 }
 ```
 
-Require WP HtmlBlocks plugin using Composer:
+Then require WP HtmlBlocks plugin using Composer:
 
 ```bash
 composer require "ergosarapu/wp-htmlblocks"
@@ -145,7 +132,7 @@ Rendered HTML result:
 </html>
 ```
 
-**Note!** The final end-result depends on the template used to render the post. You may want to render the output within plain template, for that you can use a specific plugin to set blank template for the post or modify your theme to support blank template.
+**Note!** The final end-result depends on the template used to render the post. You may want to render output within plain template, for that you can use a specific plugin to set blank template for the post or modify your theme to support blank template.
 # Tasks
 
 - `composer build` - build by running tests and code checks
