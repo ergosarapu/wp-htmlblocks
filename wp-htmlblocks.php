@@ -2,11 +2,11 @@
 
 /**
  * Plugin Name:     HTMLBlocks
- * Description:     Enrich random HTML template with Wordpress content using Wordpress Blocks experience.
+ * Description:     Capture sections of HTML document into Wordpress Blocks so that HTML template can be filled with Wordpress content.
  * Author:          Ergo Sarapu
  * Text Domain:     wp-htmlblocks
  * Domain Path:     /languages
- * Version:         0.1.0
+ * Version:         1.0.0
  *
  * @package HTMLBlocks
  */
